@@ -1,0 +1,12 @@
+@use '../everything' as *;
+
+@use "react-md" as *;
+
+// generate all react-md styles with the custom theme
+@include react-md-utils;
+
+@media (prefers-color-scheme: light) {
+  :root {
+    @include rmd-theme-light;
+  }
+}

@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  db:
+    container_name: database
+    image: mysql:5.7
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: infra_workshop
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: password
+      TZ: Asia/Tokyo
+    ports:
+      - 3308:3306
+    volumes:
+      - ./database/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./database/data:/var/lib/mysql
+      - ./database/sql:/docker-entrypoint-initdb.d
+
+  api:
+    container_name: back
+    tty: true
+    depends_on:
+      - db
+    build:
+      context: back/
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./back:/app
+    command: rails server -b 0.0.0.0
+    environment:
+      DATABASE_HOST: database
+      DATABASE_USER: app_user
+      DATABASE_PASSWORD: password
+      DATABASE: infra_workshop
+
+  front:
+    build:
+      context: front/
+      dockerfile: Dockerfile.dev
+    container_name: web
+    volumes:
+      - ./front/app:/usr/src/app
+    command: 'yarn dev'
+    ports:
+      - "4001:3000"
