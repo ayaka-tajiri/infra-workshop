@@ -15,37 +15,37 @@ interface RequestToDoList {
 }
 
 export const getTodos = async () => {
-    return axios.get(encodeURI(`${baseUrl}/todos`))
+    return axios.get(encodeURI(`${baseUrl}/api/todos`))
 }
 
 export const getTodo = async (id: string) => {
-    return axios.get(encodeURI(`${baseUrl}/todos/${id}`))
+    return axios.get(encodeURI(`${baseUrl}/api/todos/${id}`))
 }
 
 export const addToDo = async (postData: RequestToDo) => {
-    return axios.post(encodeURI(`${baseUrl}/todos`), postData)
+    return axios.post(encodeURI(`${baseUrl}/api/todos`), postData)
 }
 
 export const editToDo = async (putData: RequestToDo) => {
-    return axios.put(encodeURI(`${baseUrl}/todos/${putData.id}`), putData)
+    return axios.put(encodeURI(`${baseUrl}/api/todos/${putData.id}`), putData)
 }
 
 export const deleteTodo = async (id: string) => {
-    return axios.delete(encodeURI(`${baseUrl}/todos/${id}`))
+    return axios.delete(encodeURI(`${baseUrl}/api/todos/${id}`))
 }
 
 export const getToDoLists = async (todoId: string) => {
-    return axios.get(encodeURI(`${baseUrl}/todos/${todoId}/todo_lists`))
+    return axios.get(encodeURI(`${baseUrl}/api/todos/${todoId}/todo_lists`))
 }
 
 export const addToDoList = async (todoId: string, postData: RequestToDoList) => {
-    return axios.post(encodeURI(`${baseUrl}/todos/${todoId}/todo_lists`), postData)
+    return axios.post(encodeURI(`${baseUrl}/api/todos/${todoId}/todo_lists`), postData)
 }
 
 export const editToDoList = async (todoId: string, putData: RequestToDoList) => {
-    return axios.put(encodeURI(`${baseUrl}/todos/${todoId}/todo_lists/${putData.id}`), putData)
+    return axios.put(encodeURI(`${baseUrl}/api/todos/${todoId}/todo_lists/${putData.id}`), putData)
 }
 
 export const deleteToDoList = async (todoId: string, id: string) => {
-    return axios.delete(encodeURI(`${baseUrl}/todos/${todoId}/todo_lists/${id}`))
+    return axios.delete(encodeURI(`${baseUrl}/api/todos/${todoId}/todo_lists/${id}`))
 }

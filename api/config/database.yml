@@ -13,18 +13,13 @@ default: &default
   adapter: mysql2
   encoding: utf8mb4
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  username: app_user
-  password: password
-  host: database
 
 development:
   <<: *default
-#  host: <%= ENV.fetch('DATABASE_HOST', '127.0.0.1') %>
-#  host: database
-#  username: <%= ENV.fetch('DATABASE_USER', 'root') %>
-#  password: <%= ENV.fetch('DATABASE_PASSWORD', '') %>
+  host: <%= ENV.fetch('DATABASE_HOST', '127.0.0.1') %>
+  username: <%= ENV.fetch('DATABASE_USER', 'root') %>
+  password: <%= ENV.fetch('DATABASE_PASSWORD', '') %>
   database: <%= ENV.fetch('DATABASE', '') %>
-#  database: sample
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -54,6 +49,7 @@ test:
 #
 production:
   <<: *default
-  database: app_production
-  username: app
-  password: <%= ENV['APP_DATABASE_PASSWORD'] %>
+  host: <%= ENV.fetch('DATABASE_HOST', '127.0.0.1') %>
+  username: <%= ENV.fetch('DATABASE_USER', 'root') %>
+  password: <%= ENV.fetch('DATABASE_PASSWORD', '') %>
+  database: <%= ENV.fetch('DATABASE', '') %>

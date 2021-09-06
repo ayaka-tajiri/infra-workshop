@@ -5,5 +5,6 @@ WORKDIR /usr/src/app
 RUN yarn build
 
 FROM nginx:stable
+COPY default.conf /etc/nginx/conf.d/default.conf
 COPY --from=build_stage /usr/src/app/out/ /usr/share/nginx/html
 EXPOSE 80
