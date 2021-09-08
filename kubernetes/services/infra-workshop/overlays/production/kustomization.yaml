@@ -4,11 +4,15 @@ kind: Kustomization
 namespace: infra-workshop
 
 patchesStrategicMerge:
-  - ingress.yaml
+- ingress.yaml
 
 resources:
-  - ../../base
+- ../../base
 
 replicas:
-  - name: infra-workshop-front
-    count: 3
+- count: 3
+  name: infra-workshop-front
+images:
+- name: nextjs
+  newName: aaaaaaa
+  newTag: latest
