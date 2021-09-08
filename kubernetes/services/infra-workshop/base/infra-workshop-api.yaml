@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infra-workshop-api
+spec:
+  selector:
+    matchLabels:
+      run: infra-workshop
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        run: infra-workshop
+    spec:
+      containers:
+        - name: api
+          image: rails
+          command: ["/bin/sh"]
+          args: ["-c", "rm -f /app/tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: infra-workshop-secrets
+            - configMapRef:
+                name: infra-workshop-configmap

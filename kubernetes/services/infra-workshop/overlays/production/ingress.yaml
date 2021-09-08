@@ -14,6 +14,13 @@ spec:
     - host: "tajiri.she-dev.site"
       http:
         paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: infra-workshop
+                port:
+                  number: 3000
           - path: /
             pathType: Prefix
             backend:

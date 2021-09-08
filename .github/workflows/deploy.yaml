@@ -38,7 +38,7 @@ jobs:
         id: vars
         run: echo "::set-output name=image_tag::$(git rev-parse --short HEAD)"
 
-      - name: Build and Push
+      - name: Build and Push Frontend
         uses: docker/build-push-action@v2
         with:
           context: ./front
@@ -47,6 +47,18 @@ jobs:
           tags: |
             ${{ secrets.AWS_ECR_REPO_URL }}:${{ steps.vars.outputs.image_tag }}
             ${{ secrets.AWS_ECR_REPO_URL }}:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Build and Push Api
+        uses: docker/build-push-action@v2
+        with:
+          context: ./api
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ secrets.AWS_ECR_REPO_API_URL }}:${{ steps.vars.outputs.image_tag }}
+            ${{ secrets.AWS_ECR_REPO_API_URL }}:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
@@ -89,12 +101,16 @@ jobs:
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
           AWS_ECR_REPO_URL: ${{ secrets.AWS_ECR_REPO_URL }}
+          AWS_ECR_REPO_API_URL: ${{ secrets.AWS_ECR_REPO_API_URL }}
         run: |
-          IMAGE_NAME=nextjs
-          NEW_IMAGE=$AWS_ECR_REPO_URL
+          IMAGE_NAME_FRONT=nextjs
+          NEW_IMAGE_FRONT=$AWS_ECR_REPO_URL
+          IMAGE_NAME_API=rails
+          NEW_IMAGE_API=$AWS_ECR_REPO_API_URL
 
           echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/kube_config
           export KUBECONFIG=/tmp/kube_config
           cd kubernetes/services/infra-workshop/overlays/production
-          kustomize edit set image "${IMAGE_NAME}=${NEW_IMAGE}:${IMAGE_TAG}"
+          kustomize edit set image "${IMAGE_NAME_FRONT}=${NEW_IMAGE_FRONT}:${IMAGE_TAG}"
+          kustomize edit set image "${IMAGE_NAME_API}=${NEW_IMAGE_API}:${IMAGE_TAG}"
           kustomize build . | kubectl apply -f -

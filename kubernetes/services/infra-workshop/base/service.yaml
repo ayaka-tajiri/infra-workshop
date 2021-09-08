@@ -8,5 +8,9 @@ spec:
       targetPort: 80
       protocol: TCP
       name: front
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+      name: api
   selector:
     run: infra-workshop

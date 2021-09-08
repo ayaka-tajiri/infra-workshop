@@ -8,5 +8,6 @@ commonLabels:
 resources:
   - serviceaccount.yaml
   - service.yaml
+  - infra-workshop-api.yaml
   - infra-workshop-front.yaml
   - ingress.yaml

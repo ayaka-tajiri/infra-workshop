@@ -21,3 +21,10 @@ spec:
                 name: infra-workshop
                 port:
                   number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: infra-workshop
+                port:
+                  number: 3000
