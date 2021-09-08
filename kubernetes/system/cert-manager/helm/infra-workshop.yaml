@@ -1,0 +1,17 @@
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::254476272534:role/InfraWorkshopCertManager
+
+installCRDs: true
+
+securityContext:
+  fsGroup: 65534
+
+extraArgs:
+  - --cluster-resource-namespace=kube-system
+  - --enable-certificate-owner-ref=true
+
+webhook:
+  hostNetwork: true
+  securePort: 10251

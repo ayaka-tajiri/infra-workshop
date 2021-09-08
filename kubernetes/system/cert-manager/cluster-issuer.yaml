@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    email: dev@she-inc.co.jp
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt
+    solvers:
+      - selector:
+          dnsZones:
+            - "she-dev.site"
+        dns01:
+          route53:
+            region: ap-northeast-1

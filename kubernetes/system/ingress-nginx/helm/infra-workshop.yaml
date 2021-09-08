@@ -1,0 +1,23 @@
+controller:
+  kind: DaemonSet
+
+  # hostNetwork: true
+
+  service:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+      service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 90Mi
+
+  admissionWebhooks:
+    enabled: false
