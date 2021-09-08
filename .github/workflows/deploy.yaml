@@ -47,8 +47,8 @@ jobs:
           tags: |
             ${{ secrets.AWS_ECR_REPO_URL }}:${{ steps.vars.outputs.image_tag }}
             ${{ secrets.AWS_ECR_REPO_URL }}:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=local,src=/tmp/.buildx-cache/front
+          cache-to: type=local,dest=/tmp/.buildx-cache/front
 
       - name: Build and Push Api
         uses: docker/build-push-action@v2
@@ -59,8 +59,8 @@ jobs:
           tags: |
             ${{ secrets.AWS_ECR_REPO_API_URL }}:${{ steps.vars.outputs.image_tag }}
             ${{ secrets.AWS_ECR_REPO_API_URL }}:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=local,src=/tmp/.buildx-cache/api
+          cache-to: type=local,dest=/tmp/.buildx-cache/api
 
   deploy_manifest:
     needs:
