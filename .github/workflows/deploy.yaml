@@ -110,6 +110,9 @@ jobs:
 
           echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/kube_config
           export KUBECONFIG=/tmp/kube_config
+
+          kustomize build kubernetes/services/infra-workshop/overlays/production/configs | kubectl apply -f -
+
           cd kubernetes/services/infra-workshop/overlays/production
           kustomize edit set image "${IMAGE_NAME_FRONT}=${NEW_IMAGE_FRONT}:${IMAGE_TAG}"
           kustomize edit set image "${IMAGE_NAME_API}=${NEW_IMAGE_API}:${IMAGE_TAG}"
