@@ -5,7 +5,7 @@ metadata:
   labels:
     role: migration
 spec:
-  ttlSecondsAfterFinished: 43200
+  ttlSecondsAfterFinished: 30
   template:
     metadata:
       labels:
