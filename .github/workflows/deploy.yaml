@@ -47,8 +47,8 @@ jobs:
           tags: |
             ${{ secrets.AWS_ECR_REPO_URL }}:${{ steps.vars.outputs.image_tag }}
             ${{ secrets.AWS_ECR_REPO_URL }}:latest
-          cache-from: type=local,src=/tmp/.buildx-cache/front
-          cache-to: type=local,dest=/tmp/.buildx-cache/front
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Build and Push Api
         uses: docker/build-push-action@v2
@@ -59,8 +59,8 @@ jobs:
           tags: |
             ${{ secrets.AWS_ECR_REPO_API_URL }}:${{ steps.vars.outputs.image_tag }}
             ${{ secrets.AWS_ECR_REPO_API_URL }}:latest
-          cache-from: type=local,src=/tmp/.buildx-cache/api
-          cache-to: type=local,dest=/tmp/.buildx-cache/api
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
   deploy_manifest:
     needs:
@@ -97,7 +97,39 @@ jobs:
       - name: Set image tag
         run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      - name: Run kubectl
+      - name: Deploy Config and Secret
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+          AWS_ECR_REPO_URL: ${{ secrets.AWS_ECR_REPO_URL }}
+          AWS_ECR_REPO_API_URL: ${{ secrets.AWS_ECR_REPO_API_URL }}
+        run: |
+          echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/kube_config
+          export KUBECONFIG=/tmp/kube_config
+
+          kustomize build kubernetes/services/infra-workshop/overlays/production/configs | kubectl apply -f -
+
+      - name: Exec Migration
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+          AWS_ECR_REPO_URL: ${{ secrets.AWS_ECR_REPO_URL }}
+          AWS_ECR_REPO_API_URL: ${{ secrets.AWS_ECR_REPO_API_URL }}
+        run: |
+          IMAGE_NAME_API=rails
+          NEW_IMAGE_API=$AWS_ECR_REPO_API_URL
+
+          echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/kube_config
+          export KUBECONFIG=/tmp/kube_config
+
+          cd kubernetes/services/infra-workshop/migration
+          kustomize edit set image "${IMAGE_NAME_API}=${NEW_IMAGE_API}:${IMAGE_TAG}"
+          kustomize build . | kubectl apply -f -
+
+          while [ `kubectl get pods --all-namespaces | grep migration | awk '{print $4}'` != Completed ]
+          do
+            echo 'wait migration...'
+          done
+
+      - name: Deploy Front and Api
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
           AWS_ECR_REPO_URL: ${{ secrets.AWS_ECR_REPO_URL }}
@@ -110,8 +142,6 @@ jobs:
 
           echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/kube_config
           export KUBECONFIG=/tmp/kube_config
-
-          kustomize build kubernetes/services/infra-workshop/overlays/production/configs | kubectl apply -f -
 
           cd kubernetes/services/infra-workshop/overlays/production
           kustomize edit set image "${IMAGE_NAME_FRONT}=${NEW_IMAGE_FRONT}:${IMAGE_TAG}"
