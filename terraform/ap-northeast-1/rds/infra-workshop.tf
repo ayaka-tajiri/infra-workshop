@@ -1,10 +1,6 @@
 resource "aws_db_subnet_group" "infra-workshop" {
   name = "infra-workshop-database"
-  subnet_ids = [
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-a.id,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-c.id,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-d.id
-  ]
+  subnet_ids = data.terraform_remote_state.vpc.outputs.infra-workshop-private_subnet_ids
 }
 
 data "aws_kms_secrets" "database-infra-workshop" {
@@ -53,11 +49,7 @@ resource "aws_security_group_rule" "infra-workshop-ingress" {
   from_port = "3306"
   to_port   = "3306"
   protocol  = "TCP"
-  cidr_blocks = [
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-a.cidr_block,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-c.cidr_block,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-d.cidr_block
-  ]
+  cidr_blocks = [data.terraform_remote_state.vpc.outputs.infra-workshop-private_cidr]
 }
 
 resource "aws_security_group_rule" "infra-workshop-egress" {

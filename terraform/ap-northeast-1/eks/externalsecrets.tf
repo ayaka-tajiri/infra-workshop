@@ -19,12 +19,12 @@ data "aws_iam_policy_document" "externalsecrets-trust" {
 }
 
 resource "aws_iam_role" "externalsecrets" {
-  name               = "ExternalSecretsReadonlyAccess"
+  name               = "TajiriExternalSecretsReadonlyAccess"
   assume_role_policy = data.aws_iam_policy_document.externalsecrets-trust.json
 }
 
 data "aws_iam_policy" "secretsmanager-readonly" {
-  arn = "arn:aws:iam::254476272534:policy/SecretsManagerReadOnly"
+  arn = "arn:aws:iam::254476272534:policy/TajiriSecretsManagerReadOnly"
 }
 
 resource "aws_iam_role_policy_attachment" "externalsecrets-readonly" {

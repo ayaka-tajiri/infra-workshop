@@ -41,3 +41,7 @@ resource "aws_route_table_association" "rta_private" {
 output "infra-workshop-private_subnet_ids" {
   value = aws_subnet.private.*.id
 }
+
+output "infra-workshop-private_cidr" {
+  value = "${var.cidr_prefix}.0.0/17"
+}

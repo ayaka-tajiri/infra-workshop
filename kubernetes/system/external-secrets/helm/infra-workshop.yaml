@@ -116,7 +116,7 @@ serviceAccount:
   create: true
   # Specifies annotations for this service account
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::254476272534:role/ExternalSecretsReadonlyAccess
+    eks.amazonaws.com/role-arn: arn:aws:iam::254476272534:role/TajiriExternalSecretsReadonlyAccess
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: external-secrets

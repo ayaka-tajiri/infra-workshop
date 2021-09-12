@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "secretsmanager-read-only" {
 }
 
 resource "aws_iam_policy" "secretsmanager-read-only" {
-  name        = "SecretsManagerReadOnly"
+  name        = "TajiriSecretsManagerReadOnly"
   description = "Read only permissions for secrets manager"
   policy      = data.aws_iam_policy_document.secretsmanager-read-only.json
 }
