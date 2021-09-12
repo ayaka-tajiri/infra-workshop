@@ -1,7 +1,7 @@
 serviceAccount:
   create: true
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::254476272534:role/InfraWorkshopCertManager
+    eks.amazonaws.com/role-arn: arn:aws:iam::254476272534:role/TajiriInfraWorkshopCertManager
 
 installCRDs: true
 
