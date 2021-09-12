@@ -1,12 +1,8 @@
 locals {
-  infra_workshop_vpc_subnet_ids = [
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-public-a.id,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-public-c.id,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-public-d.id,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-a.id,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-c.id,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-d.id
-  ]
+  infra_workshop_vpc_subnet_ids = concat(
+    data.terraform_remote_state.vpc.outputs.infra-workshop-public-subnet-ids,
+    data.terraform_remote_state.vpc.outputs.infra-workshop-private_subnet_ids
+  )
 
   infra-workshop_oidc_issuer = replace(aws_eks_cluster.infra-workshop.identity[0].oidc[0].issuer, "https://", "")
 }
@@ -69,11 +65,7 @@ resource "aws_eks_node_group" "infra-workshop-general-t2-medium" {
   cluster_name    = aws_eks_cluster.infra-workshop.name
   node_group_name = "infra-workshop-general-t2-medium"
   node_role_arn   = data.aws_iam_role.eks-node-instance-role.arn
-  subnet_ids = [
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-a.id,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-c.id,
-    data.terraform_remote_state.vpc.outputs.infra-workshop-tajiri-private-d.id
-  ]
+  subnet_ids = data.terraform_remote_state.vpc.outputs.infra-workshop-private_subnet_ids
   disk_size     = 50
   capacity_type = "SPOT"
   instance_types = [
@@ -111,12 +103,12 @@ data "template_file" "external-dns-infra-workshop" {
 }
 
 resource "aws_iam_role" "external-dns-infra-workshop" {
-  name               = "InfraWorkshopKubernetesDNS"
+  name               = "TajiriInfraWorkshopKubernetesDNS"
   assume_role_policy = data.template_file.external-dns-infra-workshop.rendered
 }
 
 resource "aws_iam_role_policy" "external-dns-infra-workshop" {
-  name   = "ExternalDNS"
+  name   = "TajiriExternalDNS"
   role   = aws_iam_role.external-dns-infra-workshop.name
   policy = file("policies/external-dns.json")
 }
@@ -131,12 +123,12 @@ data "template_file" "cert-manager-infra-workshop" {
 }
 
 resource "aws_iam_role" "cert-manager-infra-workshop" {
-  name               = "InfraWorkshopCertManager"
+  name               = "TajiriInfraWorkshopCertManager"
   assume_role_policy = data.template_file.cert-manager-infra-workshop.rendered
 }
 
 resource "aws_iam_role_policy" "cert-manager-infra-workshop" {
-  name   = "CertManager"
+  name   = "TajiriCertManager"
   role   = aws_iam_role.cert-manager-infra-workshop.name
   policy = file("policies/cert-manager.json")
 }

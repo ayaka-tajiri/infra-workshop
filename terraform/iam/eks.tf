@@ -1,11 +1,11 @@
 # For AWS managed cluster
 resource "aws_iam_role" "eks" {
-  name               = "AmazonEKSRole"
+  name               = "TajiriAmazonEKSRole"
   assume_role_policy = file("policies/eks-trust.json")
 }
 
 resource "aws_iam_policy" "eks-sts" {
-  name        = "EKSStsAssumeRolePolicy"
+  name        = "TajiriEKSStsAssumeRolePolicy"
   path        = "/"
   description = "Enable EKS to assume other resources when accessing AWS APIs"
   policy      = file("policies/eks-sts.json")
@@ -32,7 +32,7 @@ output "eks-role" {
 
 # For AWS managed node groups
 resource "aws_iam_role" "eks-node-instance" {
-  name               = "NodeInstanceRole"
+  name               = "TajiriNodeInstanceRole"
   assume_role_policy = file("policies/eks-node-instance-trust.json")
 }
 
@@ -49,11 +49,6 @@ resource "aws_iam_role_policy_attachment" "eks-cni" {
 resource "aws_iam_role_policy_attachment" "ec2-container-registry-readonly" {
   role       = aws_iam_role.eks-node-instance.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
-
-resource "aws_iam_role_policy_attachment" "eks-secretsmanager-readonly" {
-  role       = aws_iam_role.eks-node-instance.name
-  policy_arn = aws_iam_policy.secretsmanager-read-only.arn
 }
 
 output "eks-node-instance-role" {

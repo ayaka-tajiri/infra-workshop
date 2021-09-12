@@ -5,6 +5,11 @@ resource "aws_route_table" "public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.vpc_gw.id
   }
+
+  tags = {
+    "Name" = "infra-workwhop public route table"
+    "VPC" =  "infra-workshop"
+  }
 }
 
 resource "aws_internet_gateway" "vpc_gw" {
@@ -13,69 +18,48 @@ resource "aws_internet_gateway" "vpc_gw" {
 
 resource "aws_eip" "public" {
   vpc = true
+
+  tags = {
+    "VPC" = "infra-workshop"
+  }
 }
 
 resource "aws_nat_gateway" "nat_gw" {
   allocation_id = aws_eip.public.id
-  subnet_id     = aws_subnet.infra-workshop-tajiri-public-a.id
-}
-
-resource "aws_subnet" "infra-workshop-tajiri-public-a" {
-  vpc_id                  = aws_vpc.infra-workshop-tajiri.id
-  cidr_block              = "10.0.0.0/20"
-  availability_zone       = "ap-northeast-1a"
-  map_public_ip_on_launch = true
+  subnet_id     = random_shuffle.nat_subnet.result[0]
 
   tags = {
-    Name = "infra-workshop-tajiri-public-a"
+    "Type" = "Public"
+    "VPC" = "infra-workshop"
   }
 }
 
-resource "aws_subnet" "infra-workshop-tajiri-public-c" {
+  resource "aws_subnet" "infra-workshop-public" {
+  count = length(var.region_azs)
+
   vpc_id                  = aws_vpc.infra-workshop-tajiri.id
-  cidr_block              = "10.0.16.0/20"
-  availability_zone       = "ap-northeast-1c"
+  cidr_block              = "${var.cidr_prefix}.${var.public_cidr_postfix[count.index]}/20"
+  availability_zone       = "${var.vpc_region}${var.region_azs[count.index]}"
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "infra-workshop-tajiri-public-c"
+    "Name" = "infra-workshop Public"
+    "VPC" = "infra-workshop"
   }
 }
 
-resource "aws_subnet" "infra-workshop-tajiri-public-d" {
-  vpc_id                  = aws_vpc.infra-workshop-tajiri.id
-  cidr_block              = "10.0.32.0/20"
-  availability_zone       = "ap-northeast-1d"
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "infra-workshop-tajiri-public-d"
-  }
+resource "random_shuffle" "nat_subnet" {
+  input        = aws_subnet.infra-workshop-public.*.id
+  result_count = 1
 }
 
-resource "aws_route_table_association" "rta-public-a" {
+resource "aws_route_table_association" "rta-public" {
+  count = length(var.region_azs)
+
   route_table_id = aws_route_table.public.id
-  subnet_id      = aws_subnet.infra-workshop-tajiri-public-a.id
+  subnet_id      = aws_subnet.infra-workshop-public[count.index].id
 }
 
-resource "aws_route_table_association" "rta-public-c" {
-  route_table_id = aws_route_table.public.id
-  subnet_id      = aws_subnet.infra-workshop-tajiri-public-c.id
-}
-
-resource "aws_route_table_association" "rta-public-d" {
-  route_table_id = aws_route_table.public.id
-  subnet_id      = aws_subnet.infra-workshop-tajiri-public-d.id
-}
-
-output "infra-workshop-tajiri-public-a" {
-  value = aws_subnet.infra-workshop-tajiri-public-a
-}
-
-output "infra-workshop-tajiri-public-c" {
-  value = aws_subnet.infra-workshop-tajiri-public-c
-}
-
-output "infra-workshop-tajiri-public-d" {
-  value = aws_subnet.infra-workshop-tajiri-public-d
+output "infra-workshop-public-subnet-ids" {
+  value = aws_subnet.infra-workshop-public.*.id
 }
