@@ -1,0 +1,31 @@
+# これが
+# どのコンテナからどのPodを立ち上げて、どのくらい立ち上げるかを指定する
+# imageでコンテナ名を指定する
+# nameはコンテナの名前。
+# port 開放するpod
+# レプリカ なんだい欲しいか
+# 古いデプロイメントで作られた同じセレクターにマッチするもおのが落ちる→新しいものがたちあがる
+# レプリカセット：このバージョンのやつをいくつ欲しい（desured）
+# デプロイメントを実行するとレプリカセットが作られる→新しいやつがreadyになったら古いものが落ちて、新しいPodに入れ替えられる
+# nameの名前を変えちゃうと、古い方を消してくれなくなっちゃう！
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infra-workshop-front
+spec:
+  selector:
+    matchLabels:
+      run: infra-workshop
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        run: infra-workshop
+    spec:
+      containers:
+        - name: frontend
+          image: nextjs
+          ports:
+            - containerPort: 80

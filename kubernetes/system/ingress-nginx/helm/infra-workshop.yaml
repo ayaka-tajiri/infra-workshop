@@ -1,0 +1,31 @@
+# イングレスコントローラーを動かすもの
+# イングレス = クーバネーティスクラスターを外部に対して開放するためのもの
+# httpとhttpsに特化したもの。リクエストパスによってどこに流すかを設定できる（service.yml）
+# イングレスを動かすためにはイングレスコントローラーをインストールする必要がある
+#
+# READMEのコマンドをうつとnginxが入る
+#
+controller:
+  kind: DaemonSet
+
+  # hostNetwork: true
+
+  # これはなんだ！
+  service:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+      service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 90Mi
+
+  admissionWebhooks:
+    enabled: false

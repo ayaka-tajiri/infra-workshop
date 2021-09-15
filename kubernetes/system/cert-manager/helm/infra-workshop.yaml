@@ -1,0 +1,19 @@
+serviceAccount:
+  create: true
+  annotations:
+    # ここで iam_role の cert-manager-infra-workshop にアクセスしている
+    # Route53の読み書き権限が必要なのでこのロールを指定する必要がある
+    eks.amazonaws.com/role-arn: arn:aws:iam::254476272534:role/oharuInfraWorkshopCertManager
+
+installCRDs: true
+
+securityContext:
+  fsGroup: 65534
+
+extraArgs:
+  - --cluster-resource-namespace=kube-system
+  - --enable-certificate-owner-ref=true
+
+webhook:
+  hostNetwork: true
+  securePort: 10251
