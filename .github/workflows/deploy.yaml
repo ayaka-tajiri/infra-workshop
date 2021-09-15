@@ -9,12 +9,16 @@ jobs:
   build_and_push_to_ecr:
     runs-on: ubuntu-latest
     steps:
+      # 自分のリポジトリのコードをとってきてる
       - name: Checkout code
+        # マーケットプレイスの中身 https://github.com/marketplace?type=actions
         uses: actions/checkout@v2
 
+      # docker を使うための setup。docker cli プラグイン。
       - name: Setup Dockerx builds
         uses: docker/setup-buildx-action@v1
 
+      # デフォルトだと全部buildしちゃうけど、修正部分だけbuildを走らせたい。これでキャッシュを持っておく
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
@@ -22,38 +26,46 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sh }}
           restore-keys: |
             ${{ runner.os }}-buildx-
+      # クレデンシャルの設定
       - name: Configure AWS credetentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
+          # secretに登録する
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
 
+      # ecrにログインする。ログインしないと怒られるから
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      # コミットタグを頭8文字目を取り出してイメージタグにする
       - name: Set Variables
         id: vars
         run: echo "::set-output name=image_tag::$(git rev-parse --short HEAD)"
 
+      # これでbuildしてpush
       - name: Build and Push
         uses: docker/build-push-action@v2
         with:
           context: ./front
           platforms: linux/amd64
           push: true
+          # steps.vars.outputs.image_tagでさっき作ったimageタグを取り出せる
           tags: |
             ${{ secrets.AWS_ECR_REPO_URL }}:${{ steps.vars.outputs.image_tag }}
             ${{ secrets.AWS_ECR_REPO_URL }}:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
+  # デプロイする
   deploy_manifest:
     needs:
       - build_and_push_to_ecr
     runs-on: ubuntu-latest
     steps:
+      # 別の環境になるのでもういっかいかく
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -64,15 +76,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
 
+      # AWS CLI をとりたい。そのためにPythonをいれる pip install という方法で入れている？
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
 
+      # ここで python を使って CLI と boto3 をいれる。
+      # AWS のサービスによっては boto3 はいらないかも？CLIは必要っぽい
+      # もしかしたら消してもいけるかも？
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install awscli boto3
+
+      # kubectl はデフォで入ってないから、install してる
       - name: Install kubectl
         run: |
           curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -80,9 +98,11 @@ jobs:
           sudo mv kubectl /usr/local/bin/kubectl
           curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s ${KUSTOMIZE_VERSION}
           sudo mv kustomize /usr/local/bin/kustomize
+      # コミットのハッシュの8文字をsetします
       - name: Set image tag
         run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
+      # これでapply
       - name: Run kubectl
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
