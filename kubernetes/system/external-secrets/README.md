@@ -1,6 +1,6 @@
 ```bash
 $ helm repo add external-secrets https://external-secrets.github.io/kubernetes-external-secrets
-$ helm update
+$ helm repo update
 ```
 
 ```bash
