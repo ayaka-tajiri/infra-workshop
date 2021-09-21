@@ -4,5 +4,5 @@ $ helm update
 ```
 
 ```bash
-$ helm upgrade external-secrets external-secrets/kubernetes-external-secrets --install -f system/external-secrets/helm/staging.yaml --namespace external-secrets
+$ helm upgrade external-secrets external-secrets/kubernetes-external-secrets --install -f helm/infra-workshop.yaml --namespace external-secrets
 ```
