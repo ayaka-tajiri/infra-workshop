@@ -1,12 +1,12 @@
 resource "aws_db_subnet_group" "infra-workshop" {
-  name = "infra-workshop-database"
+  name = "infra-workshop-database-tajiri"
   subnet_ids = data.terraform_remote_state.vpc.outputs.infra-workshop-private_subnet_ids
 }
 
 data "aws_kms_secrets" "database-infra-workshop" {
   secret {
     name    = "password"
-    payload = "AQICAHg6hcg/pjmyt0PydSpCd7tEpzHhJYPj/EaYuZifN8LLRAGJmECmETTiFncXs+qlaNuxAAAAajBoBgkqhkiG9w0BBwagWzBZAgEAMFQGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMUU6O6FQ0qfTYT0flAgEQgCdu6zVeWeDQXwAJ/2EgDIpk4IBWOCXhKcvERfblrsHRGh8+u4tCn5k="
+    payload = "AQICAHjBrxo2dc84Dus4Uc9bcpL6eZBWe189yf5HABvo+0Cw5AH6siBesE2/jpHZgB8RlKDrAAAAZjBkBgkqhkiG9w0BBwagVzBVAgEAMFAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMxuzaRda8AZMn32LJAgEQgCPYCMRfN3ZQ0okzUA0Vb2WaJ6rgKNLUq7FfmfvsSDmqDozYvA=="
 
     context = {
       service = "infra-workshop"
@@ -63,7 +63,7 @@ resource "aws_security_group_rule" "infra-workshop-egress" {
 }
 
 resource "aws_db_parameter_group" "infra-workshop-default" {
-  name   = "infra-workshop-default"
+  name   = "infra-workshop-default-tajiri"
   family = "mysql5.7"
 
   parameter {

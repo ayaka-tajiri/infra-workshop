@@ -9,7 +9,7 @@ configMapGenerator:
     literals:
       - RAILS_ENV="production"
       - API_HOST="tajiri.she-dev.site"
-      - DATABASE_HOST="terraform-20210912160638890500000001.clzertgkif0d.ap-northeast-1.rds.amazonaws.com"
+      - DATABASE_HOST="terraform-20211014134249187200000001.clzertgkif0d.ap-northeast-1.rds.amazonaws.com"
       - DATABASE_USER="app_user"
       - DATABASE="infra_workshop"
 

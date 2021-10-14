@@ -7,9 +7,9 @@ locals {
   infra-workshop_oidc_issuer = replace(aws_eks_cluster.infra-workshop.identity[0].oidc[0].issuer, "https://", "")
 }
 
-data "aws_kms_key" "infra-workshop-tajiri" {
-  key_id = "alias/infra-workshop-tajiri"
-}
+#data "aws_kms_key" "infra-workshop-tajiri" {
+#  key_id = "alias/infra-workshop-tajiri"
+#}
 
 data "aws_iam_role" "eks-role" {
   name = data.terraform_remote_state.iam.outputs.eks-role
@@ -36,13 +36,13 @@ resource "aws_eks_cluster" "infra-workshop" {
     ]
   }
 
-  encryption_config {
-    resources = ["secrets"]
-
-    provider {
-      key_arn = data.aws_kms_key.infra-workshop-tajiri.arn
-    }
-  }
+#  encryption_config {
+#    resources = ["secrets"]
+#
+#    provider {
+#      key_arn = data.aws_kms_key.infra-workshop-tajiri.arn
+#    }
+#  }
 
   enabled_cluster_log_types = [
     "api",

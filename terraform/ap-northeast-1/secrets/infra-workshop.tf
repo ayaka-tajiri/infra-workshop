@@ -1,7 +1,7 @@
 data "aws_kms_secrets" "database-infra-workshop" {
   secret {
     name    = "master_key"
-    payload = "AQICAHg6hcg/pjmyt0PydSpCd7tEpzHhJYPj/EaYuZifN8LLRAFMZTzuCErOQ9IKHOTfX7b1AAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMLgiQdOxhs3fh1XPvAgEQgDt8DlUswF6rfQgLQ7qk9x0Zuby7VV6hSTtdVOU0/guorbwvH3w9553OumNINjFp/XSLcUNGiSN61lYQgw=="
+    payload = "AQICAHjBrxo2dc84Dus4Uc9bcpL6eZBWe189yf5HABvo+0Cw5AEYo5Up749tG396pjKOoQW0AAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMciCnlQLRwMLhygU6AgEQgDuDU8RmEShv+Ta31ZfShpUdhmY7SoCBEm9/xvkOWJClUjeRvbfkNhAeoPAMTjNMwPr0M260pMKwrNLbLQ=="
 
     context = {
       service = "infra-workshop"
