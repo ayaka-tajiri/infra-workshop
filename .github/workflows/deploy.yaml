@@ -1,0 +1,149 @@
+name: deploy
+
+on: push
+
+env:
+  KUSTOMIZE_VERSION: 3.8.8
+
+jobs:
+  build_and_push_to_ecr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Dockerx builds
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sh }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Configure AWS credetentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set Variables
+        id: vars
+        run: echo "::set-output name=image_tag::$(git rev-parse --short HEAD)"
+
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v2
+        with:
+          context: ./front
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ secrets.AWS_ECR_REPO_URL }}:${{ steps.vars.outputs.image_tag }}
+            ${{ secrets.AWS_ECR_REPO_URL }}:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Build and Push Api
+        uses: docker/build-push-action@v2
+        with:
+          context: ./api
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ secrets.AWS_ECR_REPO_API_URL }}:${{ steps.vars.outputs.image_tag }}
+            ${{ secrets.AWS_ECR_REPO_API_URL }}:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+  deploy_manifest:
+    needs:
+      - build_and_push_to_ecr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credetentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install awscli boto3
+      - name: Install kubectl
+        run: |
+          curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl
+          sudo mv kubectl /usr/local/bin/kubectl
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s ${KUSTOMIZE_VERSION}
+          sudo mv kustomize /usr/local/bin/kustomize
+
+      - name: Set image tag
+        run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Deploy Config and Secret
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+          AWS_ECR_REPO_URL: ${{ secrets.AWS_ECR_REPO_URL }}
+          AWS_ECR_REPO_API_URL: ${{ secrets.AWS_ECR_REPO_API_URL }}
+        run: |
+          echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/kube_config
+          export KUBECONFIG=/tmp/kube_config
+
+          kustomize build kubernetes/services/infra-workshop/overlays/production/configs | kubectl apply -f -
+
+      - name: Exec Migration
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+          AWS_ECR_REPO_URL: ${{ secrets.AWS_ECR_REPO_URL }}
+          AWS_ECR_REPO_API_URL: ${{ secrets.AWS_ECR_REPO_API_URL }}
+        run: |
+          IMAGE_NAME_API=rails
+          NEW_IMAGE_API=$AWS_ECR_REPO_API_URL
+
+          echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/kube_config
+          export KUBECONFIG=/tmp/kube_config
+
+          cd kubernetes/services/infra-workshop/migration
+          kustomize edit set image "${IMAGE_NAME_API}=${NEW_IMAGE_API}:${IMAGE_TAG}"
+          kustomize build . | kubectl apply -f -
+
+          while [ `kubectl get pods --all-namespaces | grep migration | awk '{print $4}'` != Completed ]
+          do
+            echo 'wait migration...'
+          done
+
+      - name: Deploy Front and Api
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+          AWS_ECR_REPO_URL: ${{ secrets.AWS_ECR_REPO_URL }}
+          AWS_ECR_REPO_API_URL: ${{ secrets.AWS_ECR_REPO_API_URL }}
+        run: |
+          IMAGE_NAME_FRONT=nextjs
+          NEW_IMAGE_FRONT=$AWS_ECR_REPO_URL
+          IMAGE_NAME_API=rails
+          NEW_IMAGE_API=$AWS_ECR_REPO_API_URL
+
+          echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/kube_config
+          export KUBECONFIG=/tmp/kube_config
+
+          cd kubernetes/services/infra-workshop/overlays/production
+          kustomize edit set image "${IMAGE_NAME_FRONT}=${NEW_IMAGE_FRONT}:${IMAGE_TAG}"
+          kustomize edit set image "${IMAGE_NAME_API}=${NEW_IMAGE_API}:${IMAGE_TAG}"
+          kustomize build . | kubectl apply -f -

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infra-workshop-front
+spec:
+  selector:
+    matchLabels:
+      run: infra-workshop
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        run: infra-workshop
+    spec:
+      containers:
+        - name: frontend
+          image: nextjs
+          ports:
+            - containerPort: 80
