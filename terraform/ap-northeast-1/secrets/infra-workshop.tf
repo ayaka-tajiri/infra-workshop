@@ -23,7 +23,6 @@ data "aws_kms_secrets" "auth-infra-workshop" {
 locals {
   infra-workshop-tajiri = {
     master_key = data.aws_kms_secrets.database-infra-workshop.plaintext["master_key"]
-    auth = data.aws_kms_secrets.auth-infra-workshop.plaintext["auth"]
   }
 
   infra-workshop-tajiri-auth = {
