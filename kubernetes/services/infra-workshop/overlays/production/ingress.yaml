@@ -11,9 +11,10 @@ spec:
   tls:
     - hosts:
         - tajiri.she-dev.site
+        - lb.tajiri.she-dev.site
       secretName: infra-workshop-tls
   rules:
-    - host: "tajiri.she-dev.site"
+    - host: "lb.tajiri.she-dev.site"
       http:
         paths:
           - path: /api
